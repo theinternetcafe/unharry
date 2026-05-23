@@ -1,0 +1,21 @@
+{
+  "manifest_version": 2,
+  "name": "unharry",
+  "version": "1.0.0",
+  "description": "Filter users from the TradingView Minds feed",
+  "permissions": [
+    "storage",
+    "*://*.tradingview.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["*://*.tradingview.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "browser_action": {
+    "default_popup": "popup.html",
+    "default_title": "unharry – manage blocked users"
+  }
+}

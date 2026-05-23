@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>unharry</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 13px;
+      background: #131722;
+      color: #d1d4dc;
+      width: 280px;
+      padding: 14px;
+    }
+
+    h1 {
+      font-size: 15px;
+      font-weight: 600;
+      color: #fff;
+      letter-spacing: 0.02em;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    h1 span.badge {
+      font-size: 10px;
+      font-weight: 500;
+      background: #2962ff;
+      color: #fff;
+      border-radius: 4px;
+      padding: 1px 6px;
+      letter-spacing: 0;
+    }
+
+    .add-row {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      background: #1e222d;
+      border: 1px solid #2a2e39;
+      border-radius: 5px;
+      color: #d1d4dc;
+      padding: 6px 9px;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    input[type="text"]:focus {
+      border-color: #2962ff;
+    }
+
+    input[type="text"]::placeholder {
+      color: #555c6e;
+    }
+
+    button {
+      cursor: pointer;
+      border: none;
+      border-radius: 5px;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 6px 12px;
+      transition: background 0.15s;
+    }
+
+    .btn-add {
+      background: #2962ff;
+      color: #fff;
+    }
+
+    .btn-add:hover { background: #1e4fd8; }
+    .btn-add:active { background: #1640b0; }
+
+    .list-label {
+      font-size: 11px;
+      color: #787b86;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 6px;
+    }
+
+    #user-list {
+      list-style: none;
+      max-height: 220px;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: #2a2e39 transparent;
+    }
+
+    #user-list li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #1e222d;
+      border-radius: 5px;
+      padding: 5px 8px 5px 10px;
+      margin-bottom: 4px;
+    }
+
+    #user-list li .username {
+      color: #d1d4dc;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: 12px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .btn-remove {
+      background: transparent;
+      color: #787b86;
+      padding: 2px 5px;
+      font-size: 15px;
+      line-height: 1;
+      flex-shrink: 0;
+      border-radius: 4px;
+    }
+
+    .btn-remove:hover { background: #2a2e39; color: #d1d4dc; }
+
+    .empty-msg {
+      color: #555c6e;
+      font-size: 12px;
+      text-align: center;
+      padding: 18px 0;
+    }
+
+    .error-msg {
+      color: #f23645;
+      font-size: 12px;
+      margin-top: 5px;
+      min-height: 16px;
+    }
+  </style>
+</head>
+<body>
+  <h1>unharry <span class="badge">TradingView Minds</span></h1>
+
+  <div class="add-row">
+    <input id="new-user" type="text" placeholder="username to block" autocomplete="off" spellcheck="false" />
+    <button class="btn-add" id="btn-add">Block</button>
+  </div>
+  <div class="error-msg" id="error-msg"></div>
+
+  <div class="list-label">Blocked users</div>
+  <ul id="user-list"></ul>
+
+  <script src="popup.js"></script>
+</body>
+</html>
