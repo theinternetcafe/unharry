@@ -62,8 +62,8 @@
       return;
     }
 
-    // Basic validity check: TradingView usernames are alphanumeric + underscores
-    if (!/^[a-z0-9_.]+$/i.test(username)) {
+    // Basic validity check: TradingView usernames are alphanumeric + underscores + hyphens
+    if (!/^[a-z0-9_.\-]+$/i.test(username)) {
       errMsg.textContent = "Invalid username characters.";
       return;
     }

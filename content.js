@@ -116,15 +116,40 @@
     }
   }
 
+  // ── Debounced scan ───────────────────────────────────────────────────────────
+  // TradingView renders feed items in bursts of many small DOM mutations. If we
+  // scan mid-burst, findCard may climb into a half-built ancestor that doesn't
+  // yet have the comment-preview links that would normally stop the ascent,
+  // causing it to overshoot into a sidebar or page-level wrapper.
+  //
+  // Solution: collect the added nodes from each burst, then scan them all in one
+  // pass 250 ms after the burst goes quiet. By then TradingView has finished
+  // populating the card and the link-density check works correctly.
+  let debounceTimer = null;
+  const pendingNodes = new Set();
+
+  function scheduleScan(nodes) {
+    if (nodes) nodes.forEach((n) => pendingNodes.add(n));
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+      if (pendingNodes.size) {
+        pendingNodes.forEach((n) => scan(n));
+        pendingNodes.clear();
+      } else {
+        scan(document.body);
+      }
+    }, 250);
+  }
+
   // ── MutationObserver – watch for newly added posts ───────────────────────────
   const observer = new MutationObserver((mutations) => {
+    const added = [];
     for (const mutation of mutations) {
       for (const node of mutation.addedNodes) {
-        if (node.nodeType === Node.ELEMENT_NODE) {
-          scan(node);
-        }
+        if (node.nodeType === Node.ELEMENT_NODE) added.push(node);
       }
     }
+    if (added.length) scheduleScan(added);
   });
 
   function startObserver() {
@@ -160,12 +185,14 @@
     const newList = (changes.blocklist.newValue || []).map(norm);
     blocklist = new Set(newList);
 
-    // Unhide cards for users that were removed
+    // Unhide cards for users that were removed (safe to do immediately)
     oldList.forEach((u) => {
       if (!blocklist.has(u)) unhideCardsFor(u);
     });
 
-    // Hide cards for newly added users
-    scan(document.body);
+    // Debounce the hide scan — the popup may fire while TradingView is still
+    // mid-render, which would cause findCard to overshoot into a sidebar wrapper.
+    // Waiting 250 ms lets the DOM settle before we walk it.
+    scheduleScan(null);
   });
 })();
