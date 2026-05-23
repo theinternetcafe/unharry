@@ -25,13 +25,25 @@
     return m ? norm(m[1]) : null;
   }
 
-  // ── Find the post card that contains only this one user ─────────────────────
-  // Walk up from the username anchor, keeping track of the outermost ancestor
-  // that still contains profile links for ONLY the blocked user. The moment we
-  // step into an element that also links to other users (i.e. a shared feed
-  // container), we stop and return the last safe candidate.
-  // Hard cap of MAX_DEPTH levels to avoid climbing into <body>/<html>.
+  // ── Find the post card for the blocked user ──────────────────────────────────
+  //
+  // Two-phase strategy that handles both comments (single-user cards) and Minds
+  // posts (multi-user cards where other users appear in comment previews):
+  //
+  // Phase 1 — climb while the blocked user is the FIRST profile link.
+  //   In any well-structured post card the author link comes first in the DOM.
+  //   We keep climbing as long as that invariant holds, updating `candidate`
+  //   each time. The moment a different user appears as the first link we have
+  //   crossed into the feed container — stop.
+  //
+  // Phase 2 — safety cap on link density.
+  //   If an ancestor contains more than MAX_LINKS profile links it is almost
+  //   certainly a feed-level wrapper (dozens of posts), not a single card.
+  //   Stop there regardless of who is first.
+  //
+  // Hard limit: MAX_DEPTH levels, never reach <body>.
   const MAX_DEPTH = 15;
+  const MAX_LINKS = 20; // more than this → feed container, not a single card
 
   function findCard(anchor, targetUser) {
     let el = anchor.parentElement;
@@ -40,29 +52,25 @@
 
     while (el && el !== document.body && depth < MAX_DEPTH) {
       const profileLinks = el.querySelectorAll('a[href*="/u/"]');
-      const usersInEl = new Set();
-      for (const a of profileLinks) {
-        const u = usernameFromHref(a.getAttribute("href"));
-        if (u) usersInEl.add(u);
-      }
 
-      if (usersInEl.size === 0) {
-        // No profile links yet — keep climbing, this wrapper just hasn't loaded
+      if (profileLinks.length === 0) {
+        // No profile links yet — plain wrapper, keep climbing
         el = el.parentElement;
         depth++;
         continue;
       }
 
-      if (usersInEl.size === 1 && usersInEl.has(targetUser)) {
-        // Still a single-user subtree — this is a valid card candidate
-        candidate = el;
-        el = el.parentElement;
-        depth++;
-        continue;
-      }
+      // Too many links → definitely a feed container, stop
+      if (profileLinks.length > MAX_LINKS) break;
 
-      // Multiple users in this element — we've overshot into a shared container
-      break;
+      // The blocked user must be the first profile link (i.e. the author).
+      // If someone else is first we have climbed too high.
+      const firstUser = usernameFromHref(profileLinks[0].getAttribute("href"));
+      if (firstUser !== targetUser) break;
+
+      candidate = el;
+      el = el.parentElement;
+      depth++;
     }
 
     return candidate;
